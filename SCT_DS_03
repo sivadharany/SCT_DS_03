@@ -1,0 +1,63 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import plot_tree
+
+# Load the dataset
+bank_df = pd.read_csv('bank_marketing.csv')
+# Check for missing values
+print(bank_df.isnull().sum())
+
+# Handle missing values (e.g., impute with mean or mode)
+bank_df.fillna(bank_df.mean(), inplace=True)
+
+# Encode categorical variables using one-hot encoding
+bank_df = pd.get_dummies(bank_df, columns=['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome'])
+
+# Scale numerical variables using StandardScaler
+scaler = StandardScaler()
+bank_df[['age', 'campaign', 'pdays', 'previous']] = scaler.fit_transform(bank_df[['age', 'campaign', 'pdays', 'previous']])
+from sklearn.model_selection import train_test_split
+
+# Split the data into features (X) and target (y)
+X = bank_df.drop('y', axis=1)
+y = bank_df['y']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create a decision tree classifier
+dt_classifier = DecisionTreeClassifier(random_state=42)
+
+# Train the classifier on the training data
+dt_classifier.fit(X_train, y_train)
+, confusion_matrix
+
+# Make predictions on the testing data
+y_pred = dt_classifier.predict(X_test)
+
+# Evaluate the classifier
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+from sklearn.model_selection import GridSearchCV
+
+# Define hyperparameter tuning space
+param_grid = {'max_depth': [3, 5, 7], 'min_samples_split': [2, 5, 10], 'min_samples_leaf': [1, 5, 10]}
+
+# Perform grid search
+grid_search = GridSearchCV(dt_classifier, param_grid, cv=5, scoring='f1_macro')
+grid_search.fit(X_train, y_train)
+
+# Print the best hyperparameters and the corresponding score
+print("Best Hyperparameters:", grid_search.best_params_)
+print("Best Score:", grid_search.best_score_)
+
+# Plot the decision tree
+plt.figure(figsize=(10, 8))
+plot_tree(dt_classifier, filled=True)
+plt.show()
